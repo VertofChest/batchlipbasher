@@ -230,7 +230,25 @@ def open_audio_files():
 
     except FileNotFoundError:
         messagebox.showerror("Error", "Exported Dialog file was not found.")
-        logging.exception("Exported Dialog file was not found. Oh well.")
+
+# def validate_file_layout(file_path): # --defunct code - we already built this code into process_dialog_export
+#     try:
+#         pattern = r"([0-9A-F]{8}_\d)\.xwm"
+#         with open(file_path, 'r', encoding='utf-8-sig') as file:
+#             reader = csv.DictReader(file, delimiter='\t')
+#             for row in reader:
+#                 full_path = row['FULL PATH']
+#                 match = re.search(pattern, full_path)
+#                 if not match:
+#                     messagebox.showwarning(
+#                         "Warning",
+#                         "Invalid file layout found.\n\nPlease ensure the file follows the expected layout."
+#                     )
+#                     logging.warning(f"Invalid file layout found in file: {file_path}")
+#                     return
+#     except KeyError:
+#         logging.warning(f"Invalid file layout found in file: {file_path}")
+#         return # ---------------------------- Keeping this code handy for later
 
 def process_dialog_export(file_path):
     try:
@@ -250,6 +268,7 @@ def process_dialog_export(file_path):
                         "Invalid file layout found.\n\nPlease ensure the file follows the expected layout."
                         )
                     logging.warning(f"Invalid file layout found in file: {file_path}")
+                    print("Error reading file format - mismatched type")
                     return
     except KeyError: # What a pain this was to figure out
             logging.warning(f"Invalid file layout found in file: {file_path}")
@@ -257,6 +276,7 @@ def process_dialog_export(file_path):
                 "Warning",
                 "Invalid file layout found.\n\nPlease ensure the file follows the expected layout."
                 )
+            print("Error reading file format - Failed to parse dialogue.")
             return
 
 # Assuming the existing table is a dictionary where the keys are file names and the values are voice lines
@@ -271,7 +291,7 @@ def update_voice_line(event): # Redundant code, only used here in case something
         voice_line_entry.bind("<Return>", save_voice_line)
         voice_line_entry.bind("<FocusOut>", save_voice_line)
     except IndexError:
-        logging.warning("HEY! You're supposed to add files before double clicking here, my guy!")
+        print("HEY! You're supposed to add files before double clicking here, my guy!")
 
 def save_voice_line(event): # Redundant code, only used here in case something breaks. will be removed in the next update
     try:
@@ -282,7 +302,7 @@ def save_voice_line(event): # Redundant code, only used here in case something b
         voice_line_entry.unbind("<FocusOut>")
         voice_line_entry.delete(0, tk.END)
     except NameError:
-        logging.warning("Updating audio data table...\nIf this freezes or crashes, contact me via the forums or Discord and provide the error code.")
+        print("Updating audio data table...\nIf this freezes or crashes, contact me via the forums or Discord and provide the error code.")
 
 def open_dialog_export():
     global dialog_export_file_path
@@ -303,8 +323,7 @@ def toggle_output_folder():
         output_entry.config(state="normal")
 
 def open_link():
-    url = "https://ko-fi.com/eatingpizza"
-    subprocess.Popen(["start", "", url], shell=True)
+    #webbrowser.open("https://ko-fi.com/eatingpizza")
     messagebox.showinfo("Authors Note", "Thank you for your support - every little bit counts.\n \nIf my tool helped you, consider leaving an endorsement on the Nexus page!")
 	
 def game_selection_changed(event):
@@ -371,9 +390,11 @@ def edit_cell(event): # THIS CODE IS A FUCKING NIGHTMARE I AM NEVER TOUCHING PYT
         # Bind the Escape key to cancel the edit
         entry.bind("<Escape>", lambda event: cancel_edit())
     except IndexError:
-        logging.warning("User clicked a blank space, but everything is okay.")
+        print("Stop clicking blank spaces! (Input Ignored)") # How the fuck do you even get this error?
+        logging.exception("User clicked a blank space, but everything is okay.")
     except NameError:
-        logging.warning("Updating audio data table...\nIf this freezes or crashes, contact me via the forums or Discord and provide the error code.")
+        print("Updating audio data table...\nIf this freezes or crashes, contact me via the forums or Discord and provide the error code.")
+        logging.exception("Updating audio data table...\nIf this freezes or crashes, contact me via the forums or Discord and provide the error code.")
 # A NameError occurred during audio table cell editing. This will be reported to the gmod admins.
 
 # Create the main window
@@ -457,6 +478,10 @@ scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
 # Allow voice lines to be edited
 treeview.bind("<Double-Button-1>", edit_cell) #update_voice_line, if edit_cell fucks up
+
+# Create an Entry widget for editing voice lines
+#voice_line_entry = tk.Entry(window) # this is for the deprecated update_voice_line code if I ever need to revert back
+#voice_line_entry.grid(row=1, column=1, pady=5) # leaving it disabled for now
 
 # Create a loading bar widget, and please fucking work
 loading_bar = ttk.Progressbar(window, orient='horizontal', length=423, mode='determinate')
